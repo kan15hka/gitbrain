@@ -2,8 +2,9 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import React from "react";
+// import SyntaxHighlighter from "react-syntax-highlighter";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { lucario } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 type Props = {
   fileReferences: {
@@ -43,17 +44,20 @@ const CodeReferences = ({ fileReferences }: Props) => {
             className="max-h-[50vh] overflow-y-auto rounded-md bg-black p-3"
           >
             <SyntaxHighlighter
-              language="typescript" // ✅ Specify language for correct formatting
-              style={lucario}
+              language="python"
+              style={atomDark}
               customStyle={{
                 maxHeight: "45vh",
                 overflow: "auto",
-                whiteSpace: "pre-wrap", // ✅ Preserve line breaks
+                whiteSpace: "pre-wrap",
                 borderRadius: "8px",
                 fontSize: "14px",
               }}
             >
-              {file.sourceCode}
+              {file.sourceCode
+                .replace(/\\n/g, "\n")
+                .replace(/\\t/g, "\t")
+                .replace(/\\"/g, `"`)}
             </SyntaxHighlighter>
           </TabsContent>
         ))}
