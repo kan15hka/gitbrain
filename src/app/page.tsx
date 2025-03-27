@@ -1,9 +1,6 @@
-import { Button } from "@/components/ui/button";
-import React from "react";
+import { redirect } from "next/navigation";
 
-export default async function Home() {
-  if (typeof document === "undefined") {
-    React.useLayoutEffect = React.useEffect;
-  }
-  return <Button>Quit</Button>;
+export default function Home() {
+  redirect("/dashboard");
+  return null; // No need to render anything
 }
