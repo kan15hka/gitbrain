@@ -30,7 +30,6 @@ const DashboardPage = () => {
         </div>
       ) : (
         <div>
-          {project?.id}
           <div className="flex flex-wrap items-center justify-between gap-y-4">
             {/* Github Link Card */}
             <div className="w-fit rounded-md bg-primary px-4 py-3">

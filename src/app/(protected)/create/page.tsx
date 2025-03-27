@@ -28,24 +28,12 @@ const CreatePage = () => {
       },
       {
         onSuccess: () => {
-          toast("Project created successfully!", {
-            description: formatDateTime(),
-            action: {
-              label: "Close",
-              onClick: () => console.log("Undo"),
-            },
-          });
+          toast.success("Project created successfully!");
           refetch();
           reset();
         },
         onError: () => {
-          toast("Failed to create project!", {
-            description: formatDateTime(),
-            action: {
-              label: "Close",
-              onClick: () => console.log("Undo"),
-            },
-          });
+          toast.error("Failed to create project!");
         },
       },
     );
@@ -91,7 +79,7 @@ const CreatePage = () => {
             <Button type="submit" disabled={createProject.isPending}>
               <div className="flex items-center gap-2">
                 {createProject.isPending && (
-                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+                  <div className="h-5 w-5 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
                 )}
                 <div>
                   {createProject.isPending ? "Creating" : "Create Project"}

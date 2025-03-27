@@ -1,6 +1,7 @@
 "use client";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { Sora } from "next/font/google";
 import React from "react";
 // import SyntaxHighlighter from "react-syntax-highlighter";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -14,13 +15,19 @@ type Props = {
   }[];
 };
 
+const sora = Sora({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+});
+
 const CodeReferences = ({ fileReferences }: Props) => {
   const [tab, setTab] = React.useState(fileReferences[0]?.fileName);
 
   if (fileReferences.length === 0) return null;
 
   return (
-    <div className="max-w-[70vw]">
+    <div className="w-full">
       <Tabs value={tab} onValueChange={setTab}>
         <div className="flex gap-2 overflow-x-auto rounded-md bg-gray-200 p-1">
           {fileReferences.map((file) => (
@@ -41,17 +48,16 @@ const CodeReferences = ({ fileReferences }: Props) => {
           <TabsContent
             key={file.fileName}
             value={file.fileName}
-            className="max-h-[50vh] overflow-y-auto rounded-md bg-black p-3"
+            className="max-h-[50vh] overflow-y-auto rounded-md bg-black"
           >
             <SyntaxHighlighter
               language="python"
               style={atomDark}
               customStyle={{
-                maxHeight: "45vh",
-                overflow: "auto",
                 whiteSpace: "pre-wrap",
                 borderRadius: "8px",
                 fontSize: "14px",
+                fontFamily: sora.style.fontFamily,
               }}
             >
               {file.sourceCode

@@ -34,7 +34,7 @@ export default function RootLayout({
       <html lang="en" className={sora.className}>
         <body>
           <TRPCReactProvider>{children}</TRPCReactProvider>
-          <Toaster />
+          <Toaster richColors position="top-center" />
         </body>
       </html>
     </ClerkProvider>

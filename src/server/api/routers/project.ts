@@ -70,4 +70,51 @@ export const projectRouter = createTRPCRouter({
         },
       });
     }),
+  saveQuestionAnswer: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        question: z.string(),
+        answer: z.string(),
+        fileReferences: z.any(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!input.projectId) {
+        return [];
+      }
+      pollCommits(input.projectId).catch((err) => {
+        console.error(
+          `Error polling commits for project ${input.projectId}:`,
+          err,
+        );
+      });
+      return await ctx.db.questionAnswer.create({
+        data: {
+          projectId: input.projectId,
+          userId: ctx.user.userId!,
+          fileReferences: input.fileReferences,
+          question: input.question,
+          answer: input.answer,
+        },
+      });
+    }),
+  getQuestionAnswers: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (!input.projectId) {
+        return [];
+      }
+      return await ctx.db.questionAnswer.findMany({
+        where: {
+          projectId: input.projectId,
+        },
+        include: {
+          user: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+    }),
 });

@@ -17,6 +17,9 @@ import { readStreamableValue } from "ai/rsc";
 import MDEditor from "@uiw/react-md-editor";
 import { Sora } from "next/font/google";
 import CodeReferences from "./code-references";
+import { X } from "lucide-react";
+import { api } from "@/trpc/react";
+import useRefetch from "@/hooks/use-reftech";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -29,27 +32,23 @@ const AskQuestionCard = () => {
   const [question, setQuestion] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
-  const [filesReferences, setFilesReferences] = React.useState<
+  const [saveAnswerLoading, setSaveAnswerLoading] = React.useState(false);
+  const [fileReferences, setFilesReferences] = React.useState<
     { fileName: string; sourceCode: string; summary: string }[]
   >([]);
   const [answer, setAnswer] = React.useState("");
-
+  const saveAnswer = api.project.saveQuestionAnswer.useMutation();
+  const refetch = useRefetch();
   const onSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
     try {
       e?.preventDefault();
       if (question.trim() === "") {
-        toast("Enter question prompt to proceed!", {
-          description: formatDateTime(),
-          action: { label: "Close", onClick: () => console.log("Undo") },
-        });
+        toast.warning("Enter question prompt to proceed!");
         return;
       }
 
       if (!project?.id) {
-        toast("Project not found!", {
-          description: formatDateTime(),
-          action: { label: "Close", onClick: () => console.log("Undo") },
-        });
+        toast.error("Project not found!");
         return;
       }
 
@@ -57,13 +56,13 @@ const AskQuestionCard = () => {
       setAnswer("");
       setFilesReferences([]);
 
-      const { output, filesReferences } = await askQuestion(
+      const { output, fileReferences } = await askQuestion(
         question,
         project.id,
       );
       setOpen(true);
 
-      setFilesReferences(filesReferences);
+      setFilesReferences(fileReferences);
 
       for await (const delta of readStreamableValue(output)) {
         if (delta) {
@@ -73,7 +72,26 @@ const AskQuestionCard = () => {
     } catch (error) {
       console.error(error);
     } finally {
-      setQuestion("");
+      setLoading(false);
+    }
+  };
+  const onSaveAnswerClick = async () => {
+    try {
+      setSaveAnswerLoading(true);
+
+      saveAnswer.mutate({
+        projectId: project!.id,
+        question,
+        answer,
+        fileReferences,
+      });
+      refetch();
+
+      toast.success("Gitbrain response saved sucessfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failes to save Gitbrain response!");
+    } finally {
       setLoading(false);
     }
   };
@@ -85,27 +103,69 @@ const AskQuestionCard = () => {
       onSubmit();
     }
   };
+  const onDialogChange = (open: boolean) => {
+    if (open) {
+      setQuestion("");
+    }
+    setOpen(false);
+  };
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="overflow-auto rounded-lg p-6 sm:max-w-[70vw]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Image src="/logo.png" alt="Logo" width={40} height={40} />
-              GitBrain Response
-            </DialogTitle>
-          </DialogHeader>
-          <MDEditor.Markdown
-            source={`<br>${answer}<br><br>`}
-            className={`!h-full max-h-[40vh] max-w-[70vw] overflow-auto rounded-md border px-5 text-lg ${sora.className}`}
-          />
-          <div className="mt-4">
-            <CodeReferences fileReferences={filesReferences} />
+      <Dialog open={open} onOpenChange={() => onDialogChange(open)}>
+        <DialogContent className="max-h-[90vh] max-w-[71vw] overflow-auto rounded-md">
+          <div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1">
+                <Image src="/logo.png" alt="Logo" width={35} height={35} />
+                <div className="text-lg font-semibold"> GitBrain</div>
+                {loading && (
+                  <div className="ml-2 h-5 w-5 animate-spin rounded-full border-4 border-black border-t-transparent"></div>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  disabled={saveAnswer.isPending}
+                  variant={"outline"}
+                  onClick={onSaveAnswerClick}
+                >
+                  {saveAnswer.isPending && (
+                    <div className="h-5 w-5 animate-spin rounded-full border-4 border-black border-t-transparent"></div>
+                  )}
+                  <div>{saveAnswer.isPending ? "Saving" : "Save Response"}</div>
+                </Button>
+                <Button
+                  className="h-full px-2"
+                  onClick={() => onDialogChange(open)}
+                >
+                  <X />
+                </Button>
+              </div>
+            </div>
           </div>
-          <Button type="button" onClick={() => setOpen(false)}>
-            Close
-          </Button>
+          <div className="flex max-w-[65vw] flex-col justify-center gap-2">
+            <div className="flex gap-2 text-clip rounded-md bg-gray-100 px-4 py-3 text-sm font-medium capitalize">
+              <img src="/github-dark.svg" alt="Github" className="size-5" />
+              <div>{question}</div>
+            </div>
+            <MDEditor.Markdown
+              source={`<br>${answer}<br><br>`}
+              style={{ fontSize: "14px" }}
+              className={`!h-full max-h-[60vh] max-w-[65vw] overflow-auto rounded-md border px-5 text-sm ${sora.className}`}
+            />
+
+            <CodeReferences fileReferences={fileReferences} />
+
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() => {
+                onDialogChange(open);
+              }}
+            >
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -125,7 +185,7 @@ const AskQuestionCard = () => {
             <Button disabled={loading}>
               <div className="flex items-center gap-2">
                 {loading && (
-                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+                  <div className="h-5 w-5 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
                 )}
                 <div>{loading ? "Asking" : "Ask GitBrain!"}</div>
               </div>

@@ -40,8 +40,8 @@ const AppSideBar = () => {
   return (
     <Sidebar variant="floating" collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="logo" width={40} height={40} />
+        <div className="flex items-center gap-1">
+          <Image src="/logo.png" alt="logo" width={35} height={35} />
           {open && <h1 className="text-xl font-bold text-black">GitBrain</h1>}
         </div>
       </SidebarHeader>

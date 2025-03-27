@@ -1,3 +1,4 @@
+"use client";
 import { api } from "@/trpc/react";
 import { useLocalStorage } from "usehooks-ts";
 import { useEffect } from "react";
