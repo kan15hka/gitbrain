@@ -7,6 +7,9 @@ import React from "react";
 import CommitLog from "./commit-log";
 import AskQuestionCard from "./ask-question-card";
 import MeetingCard from "./meeting-card";
+import DeleteProjectButton from "./delete-button";
+import InviteButton from "./invite-button";
+import TeamMembers from "./team-members";
 
 const DashboardPage = () => {
   const { project, isProjectPending, hasProjects } = useProject();
@@ -56,7 +59,9 @@ const DashboardPage = () => {
             </div>
             <div className="h-4"></div>
             <div className="flex items-center gap-4">
-              TeamMembers InviteButton ArchiveButton
+              <TeamMembers />
+              <InviteButton />
+              <DeleteProjectButton />
             </div>
           </div>
           <div className="mt-4">

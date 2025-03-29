@@ -82,7 +82,7 @@ const CreatePage = () => {
                   <div className="h-5 w-5 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
                 )}
                 <div>
-                  {createProject.isPending ? "Creating" : "Create Project"}
+                  {createProject.isPending ? "Creating..." : "Create Project"}
                 </div>
               </div>
             </Button>

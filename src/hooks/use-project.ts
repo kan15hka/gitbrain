@@ -12,15 +12,12 @@ const useProject = () => {
     (project: { id: string; name: string }) => project.id === projectId,
   );
 
-  // Clear projectId from localStorage if projects are loaded but the stored ID doesn't exist
   useEffect(() => {
-    if (!isProjectPending && projects.length > 0 && projectId && !project) {
-      setProjectId("");
-    }
-
-    // If there's no projectId but projects exist, set the first one as active
-    if (!isProjectPending && projects.length > 0 && !projectId) {
-      setProjectId(projects[0]?.id || "");
+    if (!isProjectPending && projects.length > 0) {
+      // ✅ Combined logic into a single condition
+      if (!projectId || !project) {
+        setProjectId(projects[0]?.id || "");
+      }
     }
   }, [projects, projectId, isProjectPending, setProjectId]);
 

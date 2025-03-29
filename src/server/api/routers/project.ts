@@ -117,4 +117,167 @@ export const projectRouter = createTRPCRouter({
         },
       });
     }),
+
+  uploadMeeting: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        meetingUrl: z.string(),
+        name: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const meeting = await ctx.db.meeting.create({
+        data: {
+          projectId: input.projectId,
+          meetingUrl: input.meetingUrl,
+          name: input.name,
+          status: "PROCESSING",
+        },
+      });
+
+      return meeting;
+    }),
+  getMeetings: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const meetings = ctx.db.meeting.findMany({
+          where: {
+            projectId: input.projectId,
+          },
+          include: { issues: true },
+        });
+
+        return meetings;
+      } catch (error) {
+        console.error("Error fetching meetings:", error);
+        return [];
+      }
+    }),
+  getMeetingById: protectedProcedure
+    .input(
+      z.object({
+        meetingId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const meeting = ctx.db.meeting.findUnique({
+          where: {
+            id: input.meetingId,
+          },
+          include: { issues: true },
+        });
+
+        return meeting;
+      } catch (error) {
+        console.error("Error fetching meetings:", error);
+      }
+    }),
+  deleteMeeting: protectedProcedure
+    .input(
+      z.object({
+        meetingId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await ctx.db.$transaction([
+          ctx.db.issue.deleteMany({
+            where: {
+              meetingId: input.meetingId,
+            },
+          }),
+          ctx.db.meeting.delete({
+            where: {
+              id: input.meetingId,
+            },
+          }),
+        ]);
+      } catch (error) {
+        console.error("Error deleting meeting:", error);
+      }
+    }),
+  deleteProject: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const meetings = await ctx.db.meeting.findMany({
+          where: { projectId: input.projectId },
+        });
+
+        await ctx.db.$transaction([
+          ...(meetings.length > 0
+            ? [
+                ctx.db.issue.deleteMany({
+                  where: {
+                    OR: meetings.map((meeting) => ({
+                      meetingId: meeting.id,
+                    })),
+                  },
+                }),
+                ctx.db.meeting.deleteMany({
+                  where: {
+                    OR: meetings.map((meeting) => ({
+                      id: meeting.id,
+                    })),
+                  },
+                }),
+              ]
+            : []), // Skip meeting-related deletes if no meetings exist
+
+          // Combine all project-related deletions into a single batch
+          ctx.db.sourceCodeEmbedding.deleteMany({
+            where: { projectId: input.projectId },
+          }),
+          ctx.db.commit.deleteMany({
+            where: { projectId: input.projectId },
+          }),
+          ctx.db.questionAnswer.deleteMany({
+            where: { projectId: input.projectId },
+          }),
+          ctx.db.userToProjects.deleteMany({
+            where: { projectId: input.projectId },
+          }),
+
+          // Finally, delete the project itself
+          ctx.db.project.delete({
+            where: { id: input.projectId },
+          }),
+        ]);
+      } catch (error) {
+        console.error("Error deleting project:", error);
+      }
+    }),
+
+  getTeamMembers: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const projects = await ctx.db.userToProjects.findMany({
+          where: {
+            projectId: input.projectId,
+          },
+          include: { user: true },
+        });
+
+        return projects ?? [];
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+        return [];
+      }
+    }),
 });

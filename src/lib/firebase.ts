@@ -1,4 +1,4 @@
-import { error } from "console";
+import { env } from "@/env";
 import { initializeApp } from "firebase/app";
 import {
   getDownloadURL,
@@ -6,13 +6,14 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyAlqO3M-VHJMvP5uWBxGUzk3GhN-sp1X2c",
-  authDomain: "gitbrain-123.firebaseapp.com",
-  projectId: "gitbrain-123",
-  storageBucket: "gitbrain-123.firebasestorage.app",
-  messagingSenderId: "666694524816",
-  appId: "1:666694524816:web:d93a1b18242a560a6a9d15",
+  apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
